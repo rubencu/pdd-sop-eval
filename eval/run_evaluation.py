@@ -18,7 +18,10 @@ PDD_SOP = PDD_SOP_PATH.read_text()
 
 MODELS = [
     "anthropic.claude-3-haiku-20240307-v1:0",
+    "amazon.nova-micro-v1:0",
     "amazon.nova-lite-v1:0",
+    "amazon.nova-pro-v1:0",
+    "mistral.mistral-small-2402-v1:0",
 ]
 
 JUDGE_MODEL = BedrockModel(model_id="anthropic.claude-3-haiku-20240307-v1:0", temperature=0)
