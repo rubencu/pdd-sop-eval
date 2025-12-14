@@ -1,25 +1,38 @@
 # PDD SOP Evaluation
 
-Evaluation to prove that the PDD SOP jumps to implementation planning before confirming design iteration is complete.
+Evaluation framework to test and fix the PDD SOP's phase transition behavior.
 
 **GitHub Issue:** https://github.com/strands-agents/agent-sop/issues/28
 
-## Problem Statement
+## Problem
 
-The PDD SOP's Step 6 (Create Detailed Design) proceeds to Step 7 (Develop Implementation Plan) without explicitly asking the user if they are done iterating on the design. This wastes time and context window.
+The PDD SOP's Step 6 (Create Detailed Design) was missing explicit "ask before proceeding" constraints, allowing agents to jump to implementation without user confirmation.
 
-## Expected Behavior
+## Solution
 
-After completing the design phase, the agent should ask: "Are we done with the design?" before moving to implementation planning.
+Added constraints to Step 6 matching the pattern in Step 3:
+```markdown
+- You MUST explicitly ask the user if they are ready to proceed to implementation before moving to Step 7
+- You MUST NOT proceed to the implementation plan step without explicit user confirmation
+```
+
+## Results Summary
+
+| Model | Before Fix | After Fix |
+|-------|------------|-----------|
+| Nova Micro | 50% | 100% ✅ |
+| Nova Lite | 50% | 100% ✅ |
+| Nova Pro | 25% | 100% ✅ |
+| Claude 3 Haiku | 25% | 75% |
+| Mistral Small | 50% | 50% |
+
+See [REPORT.md](REPORT.md) for detailed results.
 
 ## Setup
 
 ```bash
-# Create virtual environment
 python -m venv .venv
 source .venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
 ```
 
@@ -29,25 +42,28 @@ pip install -r requirements.txt
 python eval/run_evaluation.py
 ```
 
+## Models Tested
+
+- `anthropic.claude-3-haiku-20240307-v1:0`
+- `amazon.nova-micro-v1:0`
+- `amazon.nova-lite-v1:0`
+- `amazon.nova-pro-v1:0`
+- `mistral.mistral-small-2402-v1:0`
+
 ## Project Structure
 
 ```
 pdd-sop-eval/
-├── requirements.txt        # Dependencies
-├── pdd_sop.md             # PDD SOP being evaluated
+├── pdd_sop.md             # PDD SOP with fix applied
 ├── eval/
-│   ├── eval-plan.md       # Evaluation plan
-│   ├── test-cases.jsonl   # Test scenarios
-│   └── run_evaluation.py  # Evaluation script
-├── results/               # Evaluation outputs
-└── README.md              # This file
+│   ├── run_evaluation.py  # Multi-model evaluation script
+│   └── test-cases.jsonl   # Test scenarios
+├── REPORT.md              # Detailed evaluation report
+└── results/               # Evaluation outputs (gitignored)
 ```
 
-## Test Cases
+## Key Finding
 
-1. **basic_design_completion**: Agent completes design, user says "Looks good" → Should ask if done iterating
-2. **design_with_feedback**: Agent incorporates user feedback → Should ask before implementation
+Nova models follow SOP constraints literally and pass all tests. Claude and Mistral interpret "Perfect" as a completion signal and sometimes skip the confirmation step.
 
-## Expected Results
-
-If the evaluation shows scores of 0.0 or 0.5, it confirms the issue: the PDD SOP does not ask for design confirmation before proceeding to implementation.
+For SOP execution, literal instruction-following beats general intelligence.
