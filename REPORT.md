@@ -121,11 +121,54 @@ The word "Perfect" triggers different behavior than "Looks good":
 
 4. **The SOP is now consistent** - Both Step 3 and Step 6 have explicit "ask before proceeding" constraints
 
+## Constraint Formulation Experiment
+
+We tested whether the two-line constraint could be simplified to a single line.
+
+### Variants Tested
+
+1. **Two lines (original):**
+   ```markdown
+   - You MUST explicitly ask the user if they are ready to proceed to implementation before moving to Step 7
+   - You MUST NOT proceed to the implementation plan step without explicit user confirmation because this could skip important design refinement
+   ```
+
+2. **MUST only:**
+   ```markdown
+   - You MUST explicitly ask the user if they are ready to proceed to implementation before moving to Step 7
+   ```
+
+3. **MUST NOT only:**
+   ```markdown
+   - You MUST NOT proceed to the implementation plan step without explicit user confirmation
+   ```
+
+### Results (design_to_implementation pass rate)
+
+| Variant | Haiku | Nova Micro | Nova Lite | Nova Pro | Mistral |
+|---------|-------|------------|-----------|----------|---------|
+| Two lines | 75% | 100% | 100% | 100% | 50% |
+| MUST only | 0% | 100% | 100% | 50% | 100% |
+| MUST NOT only | 50% | 50% | 0% | 0% | 0% |
+
+### Analysis
+
+- **MUST NOT alone performs worst** - Models know what not to do but lack guidance on what to do instead
+- **MUST alone is inconsistent** - Works for some models but Haiku dropped to 0%, Pro to 50%
+- **Two lines together is most robust** - The positive constraint tells models what to do, the negative reinforces it
+
+### Conclusion
+
+Keep both constraints. The MUST + MUST NOT pattern provides:
+1. Clear action to take (ask)
+2. Clear prohibition (don't proceed without confirmation)
+3. Rationale for the prohibition (helps models understand intent)
+
 ## Recommendations
 
 1. **Apply the fix to the main PDD SOP** in the agent-sop repository
 
-2. **For SOP authors:** Always include explicit "MUST ask" and "MUST NOT proceed without confirmation" constraints at phase transitions
+2. **For SOP authors:** Always include explicit "MUST ask" and "MUST NOT proceed without confirmation" constraints at phase transitions - use both together for robustness
 
 3. **For model selection:** Prefer Nova models for SOP execution when literal instruction-following is critical
 
